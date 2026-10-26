@@ -291,13 +291,13 @@ html[lang="ar"] .mock .cap{font-family:var(--font-ar);letter-spacing:0;font-size
 <script>
 /* ============================================================
    CONFIG.
-   formEndpoint: a Formspree form URL (https://formspree.io/f/xxxx).
+   formEndpoint: a FormSubmit AJAX URL (https://formsubmit.co/ajax/you@example.com).
    When set, every submission is emailed to the address that owns
    the form. When null, the portal runs in PREVIEW mode: nothing
    leaves the device and the end screen says so.
    ============================================================ */
 const CONFIG = {
-  formEndpoint: null,        // e.g. "https://formspree.io/f/abcdwxyz"
+  formEndpoint: "https://formsubmit.co/ajax/info@sadaf.tv",        // e.g. "https://formspree.io/f/abcdwxyz"
   fileUploads: false,
   uploadEndpoint: null,      // future: secure file storage endpoint (only used when fileUploads is true)        // no file storage yet: visitors share a link to their files instead
   legal: {
@@ -712,7 +712,7 @@ async function submit(){
     const L=(v,map)=>v?map[v]:"";
     const chars=d.chars.filter(c=>c.name||c.role||c.desc).map((c,i)=>`${i+1}. ${[c.name,c.role].filter(Boolean).join(" — ")}${c.desc?"\n   "+c.desc:""}`).join("\n");
     const payload={
-      _subject:`New ${series?"series":"film"} idea: ${d.title} (${ref})`,
+      _subject:`New ${series?"series":"film"} idea: ${d.title} (${ref})`,_template:"table",_captcha:"false",
       "Reference":ref,"Submitted":now.toLocaleString("en-GB",{timeZone:"Asia/Riyadh"})+" (Riyadh)","Interface language":LANG==="ar"?"Arabic":"English",
       "Format":series?"Series":"Film",
       "Full name":d.name,"email":d.email.trim(),"Mobile":`${d.code} ${digits(d.phone).replace(/\s+/g,"")}`,
@@ -727,6 +727,7 @@ async function submit(){
       "Confirmed original idea":d.a1?"Yes":"No","Agreed to terms and privacy":d.a2?"Yes":"No"};
     const res=await fetch(CONFIG.formEndpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(payload)});
     if(!res.ok)throw new Error(res.status);
+    const j=await res.json().catch(()=>({}));if(j.success===false||j.success==="false")throw new Error(j.message||"rejected");
     S.submitting=false;S.screen="done";render({scrollTop:true,focus:"none"});
   }catch(err){S.submitting=false;S.sendError=true;render();document.querySelector(".err-box")?.scrollIntoView({block:"center"});}
 }
